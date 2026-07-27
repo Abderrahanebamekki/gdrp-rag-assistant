@@ -160,13 +160,35 @@ Article 1 — Subject-matter and objectives. This Regulation lays down rules...
 
 ### Example 2: Chapter summary (uses metadata filter)
 
-**You ask:** *"Summarize Chapter II"*
+**You ask:**
+
+```
+Summarize chapter II
+```
 
 **System detects:** `{"chapter": "II"}`
 
 **Retrieves:** Every chunk from Chapter II across all its articles.
 
-**Answer:** A synthesized summary of all principles in Chapter II, citing [Ch.II, Art.5], [Ch.II, Art.6], etc.
+**Answer:**
+
+> Chapter II of the GDPR deals with the principles for processing personal data. The main articles in this chapter are:
+>
+> - **Article 5**: Principles relating to processing of personal data (lawfulness, fairness, transparency, purpose limitation, data minimization, accuracy, storage limitation, security)
+> - **Article 6**: Lawfulness of processing (processing shall be lawful only if and to the extent that at least one of the conditions in Article 6(1) applies)
+> - **Article 7**: Conditions for consent
+> - **Article 8**: Conditions applicable to child's consent in relation to information society services
+> - **Article 9**: Processing of special categories of personal data (prohibition on processing certain types of sensitive data, exceptions for specific purposes such as employment and social security)
+>
+> The main principles outlined in Chapter II are:
+>
+> 1. Lawfulness, fairness, transparency, purpose limitation, data minimization, accuracy, storage limitation, and security.
+> 2. Consent is required for processing personal data, except in specific cases where it is not necessary (Article 6(1)).
+> 3. The controller must be able to demonstrate that the processing of personal data is lawful and fair.
+> 4. Special categories of personal data require additional safeguards and exceptions for specific purposes.
+> 5. Children's consent is subject to special rules and requirements.
+>
+> Overall, Chapter II provides a framework for understanding the principles and conditions for processing personal data in a way that respects the rights and freedoms of individuals.
 
 ---
 
