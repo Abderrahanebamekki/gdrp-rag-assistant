@@ -20,6 +20,9 @@ env/
 # Database files
 chroma_db/
 
+# Other notebooks
+rag.ipynb
+
 # Large binary files (optional - remove if you want to track these)
 *.pdf
 !gdpr.pdf
