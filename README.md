@@ -41,3 +41,151 @@ Standard RAG splits text every 500 characters with 50-character overlap. For the
 ---
 
 ## How It Works (The Flow)
+
+```
+User asks: "Summarize Article 1"
+│
+▼
+┌─────────────────────────────┐
+│  Step 1: Query Analysis     │
+│  Regex detects "article 1"  │
+│  → filter_dict =            │
+│    {"article": "1"}         │
+└────────┬────────────────────┘
+         ▼
+┌─────────────────────────────┐
+│  Step 2: Retrieval          │
+│  IF filter_dict exists:     │
+│    Fetch ALL chunks where   │
+│    metadata.article == "1"  │
+│  ELSE:                      │
+│    Vector similarity search │
+│    (top-k most relevant)    │
+└────────┬────────────────────┘
+         ▼
+┌─────────────────────────────┐
+│  Step 3: Format Context     │
+│  Add source labels:         │
+│  [Ch.I, Art.1] + text       │
+└────────┬────────────────────┘
+         ▼
+┌─────────────────────────────┐
+│  Step 4: LLM Generation     │
+│  Local Llama 3.2 reads the  │
+│  context and answers with   │
+│  citations.                 │
+└─────────────────────────────┘
+```
+
+### The chunking pipeline
+
+```
+GDPR PDF
+│
+▼
+┌─────────────────┐
+│ Extract Chapters│  ← split at "CHAPTER I", "CHAPTER II"...
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Extract Articles│  ← split at "Article 1", "Article 2"...
+│ inside each     │    (never cross article boundaries)
+│ chapter         │
+└────────┬────────┘
+         │
+         ▼
+┌─────────────────────────────────────┐
+│ Create 3 types of chunks:           │
+│                                      │
+│ 1. Chapter header                   │
+│    text: "CHAPTER I — General       │
+│           provisions"               │
+│    metadata: {chapter: "I",         │
+│               article: null}        │
+│                                      │
+│ 2. Article header                   │
+│    text: "Article 1 — Subject-      │
+│           matter and objectives"    │
+│    metadata: {chapter: "I",         │
+│               article: "1"}         │
+│                                      │
+│ 3. Content chunks (split by size    │
+│    and overlap, ONLY inside the     │
+│    article body)                    │
+│    metadata: {chapter: "I",         │
+│               article: "1"}         │
+└─────────────────────────────────────┘
+         │
+         ▼
+┌─────────────────┐
+│ Embed & Store   │  ← Chroma vector database
+│ in Chroma       │    (text is embedded, metadata is stored
+└─────────────────┘     alongside for filtering)
+```
+
+---
+
+## Examples
+
+### Example 1: Specific article query (uses metadata filter)
+
+**You ask:** *"What does Article 1 say?"*
+
+**System detects:** `{"article": "1"}`
+
+**Retrieves:** All chunks where `article == "1"` — the article header + all content chunks.
+
+**LLM sees:**
+
+```
+[Ch.I, Art.1]
+Article 1 — Subject-matter and objectives. This Regulation lays down rules...
+
+[Ch.I, Art.1]
+2. This Regulation protects fundamental rights and freedoms...
+```
+
+**Answer:** *"According to [Ch.I, Art.1], the GDPR lays down rules relating to the protection of natural persons with regard to the processing of personal data, and rules relating to the free movement of such data. It also protects fundamental rights and freedoms, particularly the right to the protection of personal data."*
+
+---
+
+### Example 2: Chapter summary (uses metadata filter)
+
+**You ask:** *"Summarize Chapter II"*
+
+**System detects:** `{"chapter": "II"}`
+
+**Retrieves:** Every chunk from Chapter II across all its articles.
+
+**Answer:** A synthesized summary of all principles in Chapter II, citing [Ch.II, Art.5], [Ch.II, Art.6], etc.
+
+---
+
+### Example 3: Vague question (uses vector search)
+
+**You ask:** *"When can companies process my data?"*
+
+**System detects:** No article or chapter mentioned.
+
+**Retrieves:** Top 4 most semantically similar chunks across the entire GDPR.
+
+**Answer:** *"According to [Ch.II, Art.6], processing is lawful only if one of the following applies: (a) the data subject has given consent..."*
+
+---
+
+### Example 4: What naive RAG would break
+
+**You ask:** *"Summarize Article 1"*
+
+**Naive RAG (no metadata):** Returns chunk 2 of Article 1 and chunk 1 of Article 2 because they happen to be close in the vector space. The LLM summarizes an incomplete, mixed-up article.
+
+**This system:** Returns 100% of Article 1. Guaranteed complete.
+
+---
+
+## Prerequisites
+
+- **Python 3.10+**
+- **Ollama** installed locally (for running LLMs and embeddings offline)
+- **uv** installed (modern Python package manager, replaces pip)
