@@ -6,6 +6,14 @@ Built with **LangChain**, **Ollama** (local LLMs), and **Chroma** vector store. 
 
 ---
 
+## Visual Overview
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/b8499d32-11a9-40eb-9dfa-2e447b6748c7" alt="Mind map of the GDPR RAG Assistant architecture" width="700">
+</p>
+
+---
+
 ## What This Project Is
 
 This is a question-answering system over the GDPR PDF. Unlike typical RAG systems that shred documents into fixed-size chunks and hope for the best, this system:
